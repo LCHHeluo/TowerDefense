@@ -34,14 +34,16 @@ public class MoveEnemy : MonoBehaviour {
                 lastWaypointSwitchTime = Time.time;//設定為目前時間的時間點
                 RotateIntoMoveDirection();
             }
-            else//如果不是代表當前路徑點等於最後路徑點
+            else//如果否則代表當前路徑點等於最後路徑點
             {
                 // 3.b 
                 Destroy(gameObject);//摧毀物件
 
                 AudioSource audioSource = gameObject.GetComponent<AudioSource>();//宣告音效來源物件並設定為這個物件的AudioSource
                 AudioSource.PlayClipAtPoint(audioSource.clip, transform.position);//播放音效，音效是audioSource.clip，播放位置是這個物件的座標
-                // TODO: deduct health
+                GameManagerBehavior gameManager = GameObject.Find("GameManager").GetComponent<GameManagerBehavior>();
+                //宣告遊戲管理器並設定為全域中名為"GameManager"的物件的腳本GameManagerBehavior
+                gameManager.Health -= 1;//遊戲管理器中的公有的玩家生命值-1
             }
         }
     }
@@ -58,5 +60,19 @@ public class MoveEnemy : MonoBehaviour {
         //3
         GameObject sprite = gameObject.transform.Find("Sprite").gameObject;//宣告圖像並設定為這個物件的圖像的物件
         sprite.transform.rotation = Quaternion.AngleAxis(rotationAngle, Vector3.forward);//圖像的旋轉角度設定為繞著Vector3.forward(Z軸)旋轉rotationAngle角度
+    }
+    public float DistanceToGoal()//到終點還剩下的距離
+    {
+        float distance = 0;//宣告距離並設定為0
+        distance += Vector2.Distance(gameObject.transform.position, waypoints[currentWaypoint + 1].transform.position);
+        //距離自身加上這個物件的座標點到下一個路徑點的座標點的距離
+        for (int i = currentWaypoint + 1; i < waypoints.Length - 1; i++)
+        {//起始路徑點設定為當前路徑點的下一個，並持續做到倒數第二個路徑點，因為要算的是剩餘路徑點的間隔
+         //加總除了當前路徑點到下一個路徑點以外所有剩餘路徑點間的總長度
+            Vector3 startPosition = waypoints[i].transform.position;//宣告起始座標點並設定為i路徑點的座標
+            Vector3 endPosition = waypoints[i + 1].transform.position;//宣告結束座標點並設定為i路徑點的下一個的路徑點的座標
+            distance += Vector2.Distance(startPosition, endPosition);//距離自身加上兩點間的距離
+        }
+        return distance;//回傳距離
     }
 }
